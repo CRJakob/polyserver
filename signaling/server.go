@@ -3,22 +3,50 @@ package signaling
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
+	"net/http"
 	"polyserver/config"
 	"polyserver/webrtc"
+	"strconv"
 
 	"github.com/gorilla/websocket"
 )
 
 type Server struct {
 	Conn          *websocket.Conn
+	ICEUrls       []string
 	CurrentInvite string
 	Sessions      map[string]*webrtc.PeerSession
+	ClientCount   int
 }
 
 func NewServer() *Server {
+
+	resp, err := http.Get(config.IceFetchUrl)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	var IceServers []IceServerResponse
+	err1 := json.Unmarshal(body, &IceServers)
+	if err1 != nil {
+		log.Fatalln("Failed: Invalid ICE server response.")
+	}
+	var IceUrls []string
+	var numOfUrls = 0
+	for _, urls := range IceServers {
+		IceUrls = append(IceUrls, urls.Urls)
+		numOfUrls++
+	}
+	log.Println("Got " + strconv.Itoa(numOfUrls) + " ICE URLs")
 	return &Server{
-		Sessions: make(map[string]*webrtc.PeerSession),
+		Sessions:    make(map[string]*webrtc.PeerSession),
+		ClientCount: 1,
+		ICEUrls:     IceUrls,
 	}
 }
 
@@ -82,10 +110,11 @@ func (s *Server) handleCreateInvite(p CreateInviteResponse) {
 func (s *Server) handleJoinInvite(p JoinInvite) {
 	log.Println("User is joining:", p.Nickname)
 
-	session, err := webrtc.NewPeerSession(
+	session, answer, err := webrtc.NewPeerSession(
 		p.Session,
 		p.Offer,
-		s.send,
+		s.OnIceCandidateServer,
+		s.ICEUrls,
 	)
 	if err != nil {
 		log.Println("failed to create session:", err)
@@ -94,19 +123,22 @@ func (s *Server) handleJoinInvite(p JoinInvite) {
 
 	s.Sessions[p.Session] = session
 	log.Println("Created session:", p.Session)
-
+	s.ClientCount++
 	joinPacket, _ := json.Marshal(AcceptJoinPacket{
 		Type:                    "acceptJoin",
 		Version:                 config.PolyVersion,
 		Session:                 p.Session,
 		Mods:                    config.LoadedMods,
 		IsModsVanillaCompatible: config.AcceptVanillaClients,
+		CliendId:                s.ClientCount,
+		Answer:                  answer,
 	})
+	log.Println("Answering...")
 
 	s.send([]byte(joinPacket))
 }
 
-func (s *Server) handleICE(p IceCandidatePacket) {
+func (s *Server) handleICE(p IceCandidateResponse) {
 	log.Println("Received ICE candidate.")
 	session, ok := s.Sessions[p.Session]
 	if !ok {
@@ -118,6 +150,25 @@ func (s *Server) handleICE(p IceCandidatePacket) {
 	if err != nil {
 		log.Println("failed to add ICE:", err)
 	}
+}
+
+func (s *Server) OnIceCandidateServer(candidate []byte, session string) error {
+	var iceCandidate IceCandidate
+	err := json.Unmarshal(candidate, &iceCandidate)
+	if err != nil {
+		return err
+	}
+	icePacket, err := json.Marshal(IceCandidatePacket{
+		Type:      "iceCandidate",
+		Candidate: iceCandidate,
+		Version:   config.PolyVersion,
+		Session:   session,
+	})
+	if err != nil {
+		return err
+	}
+	log.Println("Forwarding ICE candidate...")
+	return s.send(icePacket)
 }
 
 func (s *Server) send(data []byte) error {

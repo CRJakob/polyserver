@@ -30,7 +30,7 @@ type AcceptJoinPacket struct {
 	Session                 string   `json:"session"`
 	IsModsVanillaCompatible bool     `json:"isModsVanillaCompatible"`
 	Mods                    []string `json:"mods"`
-	CliendId                string   `json:"clientId"`
+	CliendId                int      `json:"clientId"`
 	Answer                  string   `json:"answer"`
 }
 
@@ -38,11 +38,18 @@ type IceServerResponse struct {
 	Urls string
 }
 
+type IceCandidate struct {
+	Candidate        string  `json:"candidate"`
+	SDPMid           *string `json:"sdpMid"`
+	SDPMLineIndex    *uint16 `json:"sdpMLineIndex"`
+	UsernameFragment *string `json:"usernameFragment"`
+}
+
 type IceCandidatePacket struct {
-	Type      string                  `json:"type"`
-	Candidate webrtc.ICECandidateInit `json:"candidate"`
-	Version   string                  `json:"version"`
-	Session   string                  `json:"session"`
+	Type      string       `json:"type"`
+	Candidate IceCandidate `json:"candidate"`
+	Version   string       `json:"version"`
+	Session   string       `json:"session"`
 }
 
 type IceCandidateResponse struct {

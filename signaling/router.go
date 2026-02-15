@@ -25,7 +25,7 @@ func (s *Server) route(message []byte) {
 		s.handleJoinInvite(packet)
 
 	case "iceCandidate":
-		var packet IceCandidatePacket
+		var packet IceCandidateResponse
 		json.Unmarshal(message, &packet)
 		s.handleICE(packet)
 	}
