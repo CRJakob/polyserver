@@ -3,7 +3,6 @@ package gametrack
 import (
 	"bytes"
 	"crypto/sha256"
-	"encoding/binary"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -58,9 +57,9 @@ func (e Environment) String() string {
 
 // Track holds the metadata and the decoded track data.
 type Track struct {
-	Metadata    TrackMetadata
-	Data        *TrackInfo
-	EncodedData []byte
+	Metadata     TrackMetadata
+	Data         *TrackInfo
+	ExportString string
 }
 
 type TrackMetadata struct {
@@ -117,7 +116,7 @@ func DecodePolyTrack2(prefixedInput string) (*Track, error) {
 		return nil, fmt.Errorf("first base62 decode failed: %w", err)
 	}
 	fmt.Printf("First decoded length: %d bytes\n", len(firstDecoded))
-	track.EncodedData = firstDecoded
+	track.ExportString = prefixedInput
 
 	// First inflate - this should produce a STRING (the JS code uses to: "string")
 	firstInflated, err := ZlibDecompressToString(firstDecoded)
@@ -546,193 +545,4 @@ func (track *Track) GetTrackID() (string, error) {
 	hasher := sha256.New()
 	hasher.Write(trackInfo)
 	return hex.EncodeToString(hasher.Sum(nil)), nil
-}
-
-func DecodeTrackInfo(data []byte) (*TrackInfo, error) {
-	pos := 0
-
-	if len(data)-pos < 1 {
-		return nil, fmt.Errorf("unexpected EOF (env)")
-	}
-
-	env := Environment(data[pos])
-	pos++
-
-	if len(data)-pos < 1 {
-		return nil, fmt.Errorf("unexpected EOF (sun_dir)")
-	}
-
-	sunDir := data[pos]
-	pos++
-
-	if len(data)-pos < 12 {
-		return nil, fmt.Errorf("unexpected EOF (min coords)")
-	}
-
-	minX := int32(binary.LittleEndian.Uint32(data[pos:]))
-	pos += 4
-
-	minY := int32(binary.LittleEndian.Uint32(data[pos:]))
-	pos += 4
-
-	minZ := int32(binary.LittleEndian.Uint32(data[pos:]))
-	pos += 4
-
-	if len(data)-pos < 1 {
-		return nil, fmt.Errorf("unexpected EOF (packed byte)")
-	}
-
-	packed := data[pos]
-	pos++
-
-	xBytes := packed & 0b11
-	yBytes := (packed >> 2) & 0b11
-	zBytes := (packed >> 4) & 0b11
-
-	if xBytes < 1 || xBytes > 4 ||
-		yBytes < 1 || yBytes > 4 ||
-		zBytes < 1 || zBytes > 4 {
-		return nil, fmt.Errorf("invalid coordinate byte widths")
-	}
-
-	track := &TrackInfo{
-		Env:       env,
-		SunDir:    sunDir,
-		MinX:      minX,
-		MinY:      minY,
-		MinZ:      minZ,
-		DataBytes: packed,
-		Parts:     []Part{},
-	}
-
-	// -------------------------
-	// Parts Loop (matches JS)
-	// -------------------------
-	for pos < len(data) {
-
-		if len(data)-pos < 1 {
-			return nil, fmt.Errorf("unexpected EOF (part id)")
-		}
-
-		partID := data[pos]
-		pos++
-
-		if len(data)-pos < 4 {
-			return nil, fmt.Errorf("unexpected EOF (part amount)")
-		}
-
-		amount := binary.LittleEndian.Uint32(data[pos:])
-		pos += 4
-
-		part := Part{
-			ID:     partID,
-			Amount: amount,
-			Blocks: make([]Block, 0, amount),
-		}
-
-		// -------------------------
-		// Blocks Loop
-		// -------------------------
-		for i := uint32(0); i < amount; i++ {
-
-			// ---- X ----
-			if len(data)-pos < int(xBytes) {
-				return nil, fmt.Errorf("unexpected EOF (x)")
-			}
-
-			var x uint32
-			for b := uint8(0); b < xBytes; b++ {
-				x |= uint32(data[pos+int(b)]) << (8 * b)
-			}
-			x += uint32(minX)
-			pos += int(xBytes)
-
-			// ---- Y ----
-			if len(data)-pos < int(yBytes) {
-				return nil, fmt.Errorf("unexpected EOF (y)")
-			}
-
-			var y uint32
-			for b := uint8(0); b < yBytes; b++ {
-				y |= uint32(data[pos+int(b)]) << (8 * b)
-			}
-			y += uint32(minY)
-			pos += int(yBytes)
-
-			// ---- Z ----
-			if len(data)-pos < int(zBytes) {
-				return nil, fmt.Errorf("unexpected EOF (z)")
-			}
-
-			var z uint32
-			for b := uint8(0); b < zBytes; b++ {
-				z |= uint32(data[pos+int(b)]) << (8 * b)
-			}
-			z += uint32(minZ)
-			pos += int(zBytes)
-
-			// ---- rotation + direction ----
-			if len(data)-pos < 1 {
-				return nil, fmt.Errorf("unexpected EOF (rot/dir)")
-			}
-
-			rotDir := data[pos]
-			pos++
-
-			rotation := rotDir & 0b11
-			direction := (rotDir >> 2) & 0b111
-
-			// ---- color ----
-			if len(data)-pos < 1 {
-				return nil, fmt.Errorf("unexpected EOF (color)")
-			}
-
-			color := data[pos]
-			pos++
-
-			var cpOrder *uint16
-			var startOrder *uint32
-
-			// NOTE:
-			// You must replicate JS logic:
-			// if blockType in d.bK → cp_order
-			// if blockType in d.l1 → start_order
-			//
-			// For now assume helper funcs:
-			if hasCpOrder(partID) {
-				if len(data)-pos < 2 {
-					return nil, fmt.Errorf("unexpected EOF (cp_order)")
-				}
-				val := binary.LittleEndian.Uint16(data[pos:])
-				cpOrder = &val
-				pos += 2
-			}
-
-			if hasStartOrder(partID) {
-				if len(data)-pos < 4 {
-					return nil, fmt.Errorf("unexpected EOF (start_order)")
-				}
-				val := binary.LittleEndian.Uint32(data[pos:])
-				startOrder = &val
-				pos += 4
-			}
-
-			block := Block{
-				X:          x,
-				Y:          y,
-				Z:          z,
-				Rotation:   rotation,
-				Direction:  direction,
-				Color:      color,
-				CpOrder:    cpOrder,
-				StartOrder: startOrder,
-			}
-
-			part.Blocks = append(part.Blocks, block)
-		}
-
-		track.Parts = append(track.Parts, part)
-	}
-
-	return track, nil
 }

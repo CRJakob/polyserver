@@ -51,26 +51,42 @@ func (player *Player) Send(packet gamepackets.PlayerPacket) error {
 
 func (player *Player) SendTrack(track gametrack.Track) error {
 	// Send track ID
-	trackId, _ := track.GetTrackID()
+	trackId, err := track.GetTrackID()
+	if err != nil {
+		return fmt.Errorf("failed to get track ID: %w", err)
+	}
+
 	if err := player.Send(gamepackets.TrackIDPacket{TrackID: trackId}); err != nil {
 		return fmt.Errorf("failed to send track ID: %w", err)
 	}
 
-	// Split and send track data in chunks
-	data := track.EncodedData
-	for i := 0; i < len(data); i += 1024 {
-		end := i + 1024
-		if end > len(data) {
-			end = len(data)
+	// Get the exported track string (base62 encoded)
+	// This should be the same as n.toExportString(t) in JS
+	trackString := track.ExportString
+
+	// Send track data in chunks of 16383 bytes
+	for offset := 0; offset < len(trackString); offset += 16383 {
+		// Calculate chunk length (min of remaining data and chunk size)
+		chunkEnd := offset + 16383
+		if chunkEnd > len(trackString) {
+			chunkEnd = len(trackString)
+		}
+		chunkLen := chunkEnd - offset
+
+		// Create packet with 1 byte header + chunk data
+		packet := make([]byte, 1+chunkLen)
+		packet[0] = byte(gamepackets.TrackChunk)
+
+		// Copy string characters directly (they're ASCII/base62)
+		copy(packet[1:], trackString[offset:chunkEnd])
+
+		// Send the raw packet
+		if err := player.Session.ReliableDC.Send(packet); err != nil {
+			return fmt.Errorf("failed to send chunk at offset %d: %w", offset, err)
 		}
 
-		chunk := gamepackets.TrackChunkPacket{
-			Data: data[i:end],
-		}
-
-		if err := player.Send(chunk); err != nil {
-			return fmt.Errorf("failed to send chunk at offset %d: %w", i, err)
-		}
+		// Optional: Add a small delay between chunks if needed
+		// time.Sleep(10 * time.Millisecond)
 	}
 
 	return nil
