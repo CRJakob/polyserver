@@ -45,6 +45,7 @@ func NewServer(signalingServer *signaling.WebRTCServer) *GameServer {
 		Factory:         gamepackets.PacketFactory{},
 		GameSession:     &GameSession{},
 	}
+
 	signalingServer.OnOpen = server.onPlayerJoin
 	signalingServer.OnClose = server.onPlayerDisconnect
 
@@ -66,14 +67,34 @@ func (s *GameServer) UpdateGameSession(gs GameSession) {
 	s.Batcher.sessionID = s.GameSession.SessionID
 }
 
+//
+// SAFE PLAYER SNAPSHOT
+//
+
+// Not sure about this tbh
+// func (s *GameServer) snapshotPlayers() []*Player {
+// 	s.playersLock.Lock()
+// 	defer s.playersLock.Unlock()
+
+// 	out := make([]*Player, len(s.Players))
+// 	copy(out, s.Players)
+// 	return out
+// }
+
+//
+// PLAYER JOIN
+//
+
 func (server *GameServer) onPlayerJoin(p signaling.JoinInvite, session *webrtc_session.PeerSession) {
+
 	log.Println("Creating player " + p.Nickname)
+
 	carStyle, err := gamepackets.FromBase64String(p.CarStyle)
 	if err != nil {
 		carStyle = gamepackets.DefaultCarStyle()
-		log.Println("Failed fromBase64String: " + err.Error())
+		log.Println("Failed fromBase64String:", err)
 	}
-	log.Printf("Car Style: %v\n", carStyle)
+
 	newPlayer := NewPlayer(&Player{
 		Server:                  server,
 		Session:                 session,
@@ -95,24 +116,46 @@ func (server *GameServer) onPlayerJoin(p signaling.JoinInvite, session *webrtc_s
 	newPlayer.Send(gamepackets.EndSessionPacket{})
 	newPlayer.SendTrack()
 	newPlayer.StartNewSession()
+
+	// Send existing players to the new player
+	server.playersLock.Lock()
 	for _, player := range server.Players {
 		newPlayer.SendPlayerUpdate(player)
 	}
+	server.playersLock.Unlock()
+
 	server.propagateUpdate(newPlayer)
+
+	server.playersLock.Lock()
 	server.Players = append(server.Players, newPlayer)
+	server.playersLock.Unlock()
 }
 
+//
+// PLAYER DISCONNECT
+//
+
 func (server *GameServer) onPlayerDisconnect(sessionId string) {
+
+	server.playersLock.Lock()
+	defer server.playersLock.Unlock()
+
 	var playerId uint32
-	for index, player := range server.Players {
+	index := -1
+
+	for i, player := range server.Players {
 		if player.Session.SessionID == sessionId {
 			log.Println("Removing player " + player.Nickname)
 			playerId = player.ID
-			server.playersLock.Lock()
-			server.Players = append(server.Players[:index], server.Players[index+1:]...)
+			index = i
 			break
 		}
 	}
+
+	if index >= 0 {
+		server.Players = append(server.Players[:index], server.Players[index+1:]...)
+	}
+
 	for _, player := range server.Players {
 		if player.ID == playerId {
 			continue
@@ -122,13 +165,15 @@ func (server *GameServer) onPlayerDisconnect(sessionId string) {
 			IsKicked: false,
 		})
 	}
-	server.playersLock.Unlock()
 }
+
+//
+// SCHEDULER
+//
 
 func schedule(f func(), interval time.Duration) *time.Ticker {
 	ticker := time.NewTicker(interval)
 	go func() {
-		// Loop indefinitely, running the function every time a tick is received
 		for range ticker.C {
 			f()
 		}
@@ -136,14 +181,24 @@ func schedule(f func(), interval time.Duration) *time.Ticker {
 	return ticker
 }
 
+//
+// PING SYSTEM
+//
+
 func (server *GameServer) sendPings() {
+	server.playersLock.Lock()
+	defer server.playersLock.Unlock()
+
 	for _, player := range server.Players {
 		player.SendPing()
 	}
+
 	server.sendPingDatas()
 }
 
 func (server *GameServer) sendPingDatas() {
+	server.playersLock.Lock()
+	defer server.playersLock.Unlock()
 	pings := server.getPlayerPings()
 
 	for _, player := range server.Players {
@@ -155,22 +210,35 @@ func (server *GameServer) sendPingDatas() {
 }
 
 func (server *GameServer) getPlayerPings() []gamepackets.PlayerPing {
-	pings := make([]gamepackets.PlayerPing, len(server.Players))
+
+	pings := make([]gamepackets.PlayerPing, 0, len(server.Players))
+
 	for _, player := range server.Players {
 		pings = append(pings, gamepackets.PlayerPing{
 			PlayerID: player.ID,
 			Ping:     uint16(player.Ping),
 		})
 	}
+
 	return pings
 }
 
+//
+// PLAYER UPDATE PROPAGATION
+//
+
 func (server *GameServer) propagateUpdate(p *Player) {
+	server.playersLock.Lock()
+	defer server.playersLock.Unlock()
 	for _, player := range server.Players {
 		log.Printf("Sending player %s to %s", p.Nickname, player.Nickname)
 		player.SendPlayerUpdate(p)
 	}
 }
+
+//
+// CAR STATE DISTRIBUTION
+//
 
 type CarStateExtended struct {
 	ID           uint32
@@ -179,8 +247,12 @@ type CarStateExtended struct {
 }
 
 func (server *GameServer) UpdateCarStates() {
+	server.playersLock.Lock()
+	defer server.playersLock.Unlock()
 	for _, player := range server.Players {
 		var unsentCarStates []*CarStateExtended
+		// So others can't modify data while we're reading it
+		player.CSLock.Lock()
 		for _, p := range server.Players {
 			if player != p && len(p.UnsentCarStates) > 0 {
 				for _, carState := range p.UnsentCarStates {
@@ -192,6 +264,10 @@ func (server *GameServer) UpdateCarStates() {
 				}
 			}
 		}
-		server.Batcher.SendCarUpdates(player, unsentCarStates)
+
+		// I wana look into this more, i think it would be nice
+		// to have it multithreaded
+		go server.Batcher.SendCarUpdates(player, unsentCarStates)
+		player.CSLock.Unlock()
 	}
 }

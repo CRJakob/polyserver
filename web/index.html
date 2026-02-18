@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>PolyServer Supervisor</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <h1>PolyServer Supervisor</h1>
+
+  <h2>Server Status</h2>
+  <p>Status: <strong id="status">?</strong></p>
+  <p>PID: <strong id="pid">-</strong></p>
+
+  <button onclick="startServer()">Start Server</button>
+  <button onclick="stopServer()">Stop Server</button>
+
+  <hr />
+
+  <h2>Invite</h2>
+  <button onclick="createInvite()">Create Invite</button>
+  <pre id="invite">-</pre>
+
+  <hr />
+
+  <h2>Track</h2>
+  <select id="trackSelect"></select>
+  <button onclick="setTrack()">Change Track</button>
+
+  <hr />
+
+  <h2>Players / Scoreboard</h2>
+
+  <table id="players">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Time</th>
+        <th>Ping</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script src="app.js"></script>
+</body>
+</html>

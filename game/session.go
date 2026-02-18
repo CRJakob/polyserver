@@ -9,3 +9,5 @@ type GameSession struct {
 	CurrentTrack     *gametrack.Track
 	MaxPlayers       int
 }
+
+// TODO: Proper session switching

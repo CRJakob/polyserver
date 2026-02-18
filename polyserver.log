@@ -1,0 +1,375 @@
+2026/02/18 22:07:48 Launcher started
+2026/02/18 22:07:48 Server started with PID 37980
+2026/02/18 22:07:48 Dashboard running on http://localhost:8080
+
+ ┌───────────────────────────────────────────────────┐ 
+ │                  Fiber v2.52.11                   │ 
+ │               http://127.0.0.1:8080               │ 
+ │       (bound on host 0.0.0.0 and port 8080)       │ 
+ │                                                   │ 
+ │ Handlers ............ 13  Processes ........... 1 │ 
+ │ Prefork ....... Disabled  PID ............. 23428 │ 
+ └───────────────────────────────────────────────────┘ 
+
+2026/02/18 22:07:48 Game server starting...
+Base62 input length: 3916
+Decoding string of length 3916
+Decoded to 2905 bytes
+First decoded length: 2905 bytes
+First inflated (string) length: 5703
+Decoding string of length 5703
+Decoded to 4237 bytes
+Second decoded length: 4237 bytes
+Attempting to decompress 4237 bytes
+First byte: 0x18
+Second inflated length: 10510 bytes
+name: "Desert 1"
+author: Kodub
+lastModified: 2025-11-29 14:54:05 +0100 CET
+env: Desert
+sunDir: 28
+minX: -92, minY: 0, minZ: -28
+dataBytes: 21
+2026/02/18 22:07:48 Loaded track desert1
+Base62 input length: 4483
+Decoding string of length 4483
+Decoded to 3323 bytes
+First decoded length: 3323 bytes
+First inflated (string) length: 6444
+Decoding string of length 6444
+Decoded to 4770 bytes
+Second decoded length: 4770 bytes
+Attempting to decompress 4770 bytes
+First byte: 0x18
+Second inflated length: 11422 bytes
+name: "Desert 2"
+author: Kodub
+lastModified: 2025-11-29 15:02:33 +0100 CET
+env: Desert
+sunDir: 28
+minX: -12, minY: 0, minZ: -84
+dataBytes: 21
+2026/02/18 22:07:48 Loaded track desert2
+Base62 input length: 4567
+Decoding string of length 4567
+Decoded to 3385 bytes
+First decoded length: 3385 bytes
+First inflated (string) length: 7549
+Decoding string of length 7549
+Decoded to 5612 bytes
+Second decoded length: 5612 bytes
+Attempting to decompress 5612 bytes
+First byte: 0x18
+Second inflated length: 14388 bytes
+name: "Desert 3"
+author: Kodub
+lastModified: 2025-11-29 15:07:02 +0100 CET
+env: Desert
+sunDir: 127
+minX: -48, minY: 0, minZ: -196
+dataBytes: 21
+2026/02/18 22:07:48 Loaded track desert3
+Base62 input length: 4556
+Decoding string of length 4556
+Decoded to 3384 bytes
+First decoded length: 3384 bytes
+First inflated (string) length: 6239
+Decoding string of length 6239
+Decoded to 4614 bytes
+Second decoded length: 4614 bytes
+Attempting to decompress 4614 bytes
+First byte: 0x18
+Second inflated length: 13232 bytes
+name: "Desert 4"
+author: Kodub
+lastModified: 2025-11-29 15:10:08 +0100 CET
+env: Desert
+sunDir: 28
+minX: -212, minY: 0, minZ: -44
+dataBytes: 22
+2026/02/18 22:07:48 Loaded track desert4
+Base62 input length: 5335
+Decoding string of length 5335
+Decoded to 3956 bytes
+First decoded length: 3956 bytes
+First inflated (string) length: 8608
+Decoding string of length 8608
+Decoded to 6393 bytes
+Second decoded length: 6393 bytes
+Attempting to decompress 6393 bytes
+First byte: 0x18
+Second inflated length: 15124 bytes
+name: "Desert 5"
+author: Kodub
+lastModified: 2026-02-12 18:01:39 +0100 CET
+env: Desert
+sunDir: 23
+minX: -140, minY: 0, minZ: -56
+dataBytes: 21
+2026/02/18 22:07:48 Loaded track desert5
+Base62 input length: 1746
+Decoding string of length 1746
+Decoded to 1296 bytes
+First decoded length: 1296 bytes
+First inflated (string) length: 2040
+Decoding string of length 2040
+Decoded to 1518 bytes
+Second decoded length: 1518 bytes
+Attempting to decompress 1518 bytes
+First byte: 0x18
+Second inflated length: 3600 bytes
+name: "Summer 1"
+author: Kodub
+lastModified: 2026-02-01 21:08:51 +0100 CET
+env: Summer
+sunDir: 28
+minX: -64, minY: 0, minZ: -28
+dataBytes: 21
+2026/02/18 22:07:48 Loaded track summer1
+Base62 input length: 2472
+Decoding string of length 2472
+Decoded to 1833 bytes
+First decoded length: 1833 bytes
+First inflated (string) length: 3044
+Decoding string of length 3044
+Decoded to 2269 bytes
+Second decoded length: 2269 bytes
+Attempting to decompress 2269 bytes
+First byte: 0x18
+Second inflated length: 5683 bytes
+name: "Summer 2"
+author: Kodub
+lastModified: 2025-11-28 14:44:01 +0100 CET
+env: Summer
+sunDir: 28
+minX: -8, minY: 0, minZ: -64
+dataBytes: 21
+2026/02/18 22:07:48 Loaded track summer2
+Base62 input length: 3189
+Decoding string of length 3189
+Decoded to 2369 bytes
+First decoded length: 2369 bytes
+First inflated (string) length: 4209
+Decoding string of length 4209
+Decoded to 3131 bytes
+Second decoded length: 3131 bytes
+Attempting to decompress 3131 bytes
+First byte: 0x18
+Second inflated length: 7364 bytes
+name: "Summer 3"
+author: Kodub
+lastModified: 2025-11-28 14:51:22 +0100 CET
+env: Summer
+sunDir: 28
+minX: -236, minY: 0, minZ: -76
+dataBytes: 21
+2026/02/18 22:07:48 Loaded track summer3
+Base62 input length: 6468
+Decoding string of length 6468
+Decoded to 4796 bytes
+First decoded length: 4796 bytes
+First inflated (string) length: 9579
+Decoding string of length 9579
+Decoded to 7128 bytes
+Second decoded length: 7128 bytes
+Attempting to decompress 7128 bytes
+First byte: 0x18
+Second inflated length: 17262 bytes
+name: "Summer 4"
+author: Kodub
+lastModified: 2025-11-28 15:01:06 +0100 CET
+env: Summer
+sunDir: 28
+minX: -72, minY: 0, minZ: -140
+dataBytes: 21
+2026/02/18 22:07:48 Loaded track summer4
+Base62 input length: 6073
+Decoding string of length 6073
+Decoded to 4503 bytes
+First decoded length: 4503 bytes
+First inflated (string) length: 8612
+Decoding string of length 8612
+Decoded to 6368 bytes
+Second decoded length: 6368 bytes
+Attempting to decompress 6368 bytes
+First byte: 0x18
+Second inflated length: 15065 bytes
+name: "Summer 5"
+author: Kodub
+lastModified: 2025-11-28 15:18:00 +0100 CET
+env: Summer
+sunDir: 28
+minX: -144, minY: 0, minZ: -40
+dataBytes: 21
+2026/02/18 22:07:48 Loaded track summer5
+Base62 input length: 3067
+Decoding string of length 3067
+Decoded to 2275 bytes
+First decoded length: 2275 bytes
+First inflated (string) length: 3486
+Decoding string of length 3486
+Decoded to 2589 bytes
+Second decoded length: 2589 bytes
+Attempting to decompress 2589 bytes
+First byte: 0x18
+Second inflated length: 5949 bytes
+name: "Summer 6"
+author: Kodub
+lastModified: 2025-11-28 15:33:02 +0100 CET
+env: Summer
+sunDir: 28
+minX: -140, minY: 0, minZ: -92
+dataBytes: 21
+2026/02/18 22:07:48 Loaded track summer6
+Base62 input length: 4375
+Decoding string of length 4375
+Decoded to 3243 bytes
+First decoded length: 3243 bytes
+First inflated (string) length: 5459
+Decoding string of length 5459
+Decoded to 4062 bytes
+Second decoded length: 4062 bytes
+Attempting to decompress 4062 bytes
+First byte: 0x18
+Second inflated length: 10629 bytes
+name: "Summer 7"
+author: Kodub
+lastModified: 2025-11-28 15:34:48 +0100 CET
+env: Summer
+sunDir: 28
+minX: -8, minY: 0, minZ: -68
+dataBytes: 21
+2026/02/18 22:07:48 Loaded track summer7
+Base62 input length: 1834
+Decoding string of length 1834
+Decoded to 1361 bytes
+First decoded length: 1361 bytes
+First inflated (string) length: 2004
+Decoding string of length 2004
+Decoded to 1490 bytes
+Second decoded length: 1490 bytes
+Attempting to decompress 1490 bytes
+First byte: 0x18
+Second inflated length: 3573 bytes
+name: "Winter 1"
+author: Kodub
+lastModified: 2025-11-28 15:48:28 +0100 CET
+env: Winter
+sunDir: 28
+minX: -8, minY: 0, minZ: -104
+dataBytes: 21
+2026/02/18 22:07:48 Loaded track winter1
+Base62 input length: 5549
+Decoding string of length 5549
+Decoded to 4118 bytes
+First decoded length: 4118 bytes
+First inflated (string) length: 9434
+Decoding string of length 9434
+Decoded to 6991 bytes
+Second decoded length: 6991 bytes
+Attempting to decompress 6991 bytes
+First byte: 0x18
+Second inflated length: 20164 bytes
+name: "Winter 2"
+author: Kodub
+lastModified: 2025-11-28 15:52:55 +0100 CET
+env: Winter
+sunDir: 28
+minX: -104, minY: 0, minZ: -272
+dataBytes: 37
+2026/02/18 22:07:48 Loaded track winter2
+Base62 input length: 4689
+Decoding string of length 4689
+Decoded to 3482 bytes
+First decoded length: 3482 bytes
+First inflated (string) length: 6960
+Decoding string of length 6960
+Decoded to 5166 bytes
+Second decoded length: 5166 bytes
+Attempting to decompress 5166 bytes
+First byte: 0x18
+Second inflated length: 13184 bytes
+name: "Winter 3"
+author: Kodub
+lastModified: 2025-11-28 15:45:14 +0100 CET
+env: Winter
+sunDir: 28
+minX: -68, minY: 0, minZ: -136
+dataBytes: 21
+2026/02/18 22:07:48 Loaded track winter3
+Base62 input length: 2636
+Decoding string of length 2636
+Decoded to 1956 bytes
+First decoded length: 1956 bytes
+First inflated (string) length: 3833
+Decoding string of length 3833
+Decoded to 2855 bytes
+Second decoded length: 2855 bytes
+Attempting to decompress 2855 bytes
+First byte: 0x18
+Second inflated length: 7077 bytes
+name: "Winter 4"
+author: Kodub
+lastModified: 2025-11-28 15:54:41 +0100 CET
+env: Winter
+sunDir: 28
+minX: -36, minY: 0, minZ: -72
+dataBytes: 21
+2026/02/18 22:07:48 Loaded track winter4
+Base62 input length: 2783
+Decoding string of length 2783
+Decoded to 2063 bytes
+First decoded length: 2063 bytes
+First inflated (string) length: 5266
+Decoding string of length 5266
+Decoded to 3925 bytes
+Second decoded length: 3925 bytes
+Attempting to decompress 3925 bytes
+First byte: 0x18
+Second inflated length: 9606 bytes
+name: "Winter 5"
+author: Kodub
+lastModified: 2025-11-30 12:23:02 +0100 CET
+env: Winter
+sunDir: 28
+minX: -184, minY: 0, minZ: -64
+dataBytes: 21
+2026/02/18 22:07:48 Loaded track winter5
+2026/02/18 22:07:48 Got 4 ICE URLs
+2026/02/18 22:07:49 Initial invite: 
+2026/02/18 22:07:49 Control API running on 127.0.0.1:9090
+
+ ┌───────────────────────────────────────────────────┐ 
+ │                  Fiber v2.52.11                   │ 
+ │               http://127.0.0.1:9090               │ 
+ │                                                   │ 
+ │ Handlers ............. 6  Processes ........... 1 │ 
+ │ Prefork ....... Disabled  PID ............. 37980 │ 
+ └───────────────────────────────────────────────────┘ 
+
+2026/02/18 22:07:49 Invite code: 8DYFHJM1
+2026/02/18 22:07:59 User is joining: Orangy
+2026/02/18 22:07:59 Creating data channels...
+2026/02/18 22:07:59 Created session: 43fc73cc-4db8-47cd-b2e0-554e9b03651f
+2026/02/18 22:07:59 Answering...
+2026/02/18 22:08:00 User is joining: Jakob
+2026/02/18 22:08:00 Creating data channels...
+2026/02/18 22:08:00 Created session: 9dc615e9-f5e3-4e10-8fd2-df876c3deb0d
+2026/02/18 22:08:00 Answering...
+2026/02/18 22:08:00 Creating player Jakob
+2026/02/18 22:08:01 Creating player Orangy
+2026/02/18 22:08:46 User is joining: Anonymous
+2026/02/18 22:08:46 Creating data channels...
+2026/02/18 22:08:46 Created session: ba7ff8d9-8958-487f-a84e-33f07c0ee7a1
+2026/02/18 22:08:46 Answering...
+2026/02/18 22:08:47 Creating player Anonymous
+Cleaning up session: ba7ff8d9-8958-487f-a84e-33f07c0ee7a1
+2026/02/18 22:09:00 Removing ba7ff8d9-8958-487f-a84e-33f07c0ee7a1 from Sessions...
+Cleaning up session: 43fc73cc-4db8-47cd-b2e0-554e9b03651f
+Cleaning up session: 9dc615e9-f5e3-4e10-8fd2-df876c3deb0d
+2026/02/18 22:09:30 Track switched to desert1
+2026/02/18 22:09:34 Track switched to summer5
+2026/02/18 22:09:39 User is joining: Jakob
+2026/02/18 22:09:39 Creating data channels...
+Cleaning up session: 93551198-c21b-4b53-8a0e-77771ebbf509
+Cleaning up session: 93551198-c21b-4b53-8a0e-77771ebbf509

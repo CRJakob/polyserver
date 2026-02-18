@@ -1,43 +1,198 @@
 package main
 
 import (
+	"bytes"
+	"flag"
 	"fmt"
+	"io"
 	"log"
-	"polyserver/game"
-	gametrack "polyserver/game/track"
-	"polyserver/signaling"
+	"net/http"
+	"os"
+	"os/exec"
+	"strconv"
+	"time"
+
+	"github.com/gofiber/fiber/v2"
 )
 
-func main() {
-	log.Println("Starting...")
-	track, err := gametrack.DecodePolyTrack2("PolyTrack24pdrVdskciFE8XCb3wRMNeeewNMvHNe2G3XftlmdkmRaPuRSkZdjoSysIWv4pl4S1STwDRzKiHJBJ44eVK0lkDs4GjdNUOdkl0FmEorcHZ02TdYD1uJUV6qgwRXKwjucnL0y81hxFFHx9yNOANRKFKNfS627RCOiwqLSqIoFlBca72GYWC0GAph3jAGQtbwLcAkYThEeuF9olyBEAFh0XtTDTYWzuHpCktWNeOnLnZuqGFmva4dRuBGoHED6dZNjEIIRZnQi3pt03tqWqgE5dojDp2nTLy0KJWBW7PRI69Ol7TOmESCvFQeAOFbrxfGDd3AbV9Au1jAqVdYY3W7YRJGbqEAj05u8aNQRzmVnPkJj1iljU51pCgrLeqSY2pUtaXYcKJNeIKQYs9T2LfGeQrsUYVLT25i1IU2N3Bl8l1leqWa9Ahmk9D3UmwcQNnSBlynlISO23aJaNFjeS5gW8IMsZRsfpcE4qbRabrXIDJBNlQy7t1BCfEjwGyXJt5vZKi4LMYIM4xTlsZZHXuz8k9QEeJs9gJpIv9MVynPlZt002SGkTjkEk3U8NkhGeJuPFiv0jNS91k0LET77Mr8ImufhDgY6cfjVPkwhV7MSaMR7Z1IQcesNq4wmIYcObELODkoehQuEC9mcr6ovy3p6aXdqvDXi2dtnRcbPAfYsve3RkAYafM3mK1vkMh37PuK1XIBQezZPwtmoeUfkigd4vXUuVvhifBxn4el3ZxffRWOLmHX06B9wQBrhr8Mr3xadI2F1aPEDngAqfOgzbbHRTneH6mRhxgIldZEyi8Wc5jd2gygS0y0desgpuAyAeNMmDcLcLie5B2lzyQ1zIHQQzWF1vJjmtnfbC6UIXy6yI5zGyGyPxa9gw8E3BU0sVT9VCSCdJXhtVQcW0SRbtBeI8nKHHXfKgve2NTrheuJ4wTUmGci0Na49RGxeHZE3fMjY6k9EjbtFPLjZdKvZm6BhORyuwuWOEM1EQqSISU7ext7lwBY4JdtTVjUhtxALC37eRG3HgcqviUavOESJ2eV2ZvkpRw8y6wejYq0wHN1xCErYWzOucVFPqVFYj4ATHrW5aZPzdm7sSMHv8WyeEVdJ8fN1lsmEm19fWvLhLf9lpyecfsJBbIsISLTt5HEQYfe9keEbFMVCy1L7lLywRopov0q76br3oM0WaQqp2Yf380jZHzEeGnkMqBqBivxoHWXHSSm38jeRzvt53NWecbE51qtjqeC6m0bvmRjnO8rHDfzXtNmd38iRhPGSn5Ib19VPzBeF5SFqB5gb6T2v0KsxReMyCc7YWaDQgWfzZd1kuuE7OWSkjYGPp4bfJZnu9KpkteZjpuqweFhY2FBqHxSyYxe7ZEYAepeBIIkMetGNhgeOxaNLjve8nNlcfGHD7FsGXhIkGHBJ0HvfAUfojDoO4Hne5oQn51oeLkEz2Efdke7OyE3SoCbk50cfrzvYsY8mMmcmsVeScqj2rOfS9epl5fpQFGqjhGHVXY83C4WEB6WTHjwueP3tYLCGCZiHyc0WeEcupH1Cps0mmikCQnnfvfKG12peXnT1XNIfZEoaEy9aAeQ6ciSb4Gm0pSyR1UFqclSEBfKq5MeIySoPFFiLRcK8mztlSDeujKhYkksZ28j57oG8nmFx2siyrewpyIEvczxnW2Unyqnlt7VqvNY4zoVCfKtrrBCb7w8zjheyXMAeqo6HTRwTOhjSBSoyaf9fQCgsPOdIuMfPgaGstZ")
+func proxyJSON(c *fiber.Ctx, method, url string) error {
+
+	req, err := http.NewRequest(method, url, bytes.NewReader(c.Body()))
 	if err != nil {
-		fmt.Printf("err: %v\n", err)
+		return c.Status(500).SendString(err.Error())
 	}
-	fmt.Printf("track: %v\n", track)
-	trackId, _ := track.GetTrackID()
 
-	fmt.Printf("trackId: %v\n", trackId)
-	server := signaling.NewServer()
-
-	if err := server.Connect(); err != nil {
-		log.Fatal(err)
-	}
-	go server.Start()
-
-	gameServer := game.NewServer(server)
-	gameServer.UpdateGameSession(game.GameSession{
-		SessionID:        0,
-		GameMode:         game.Competitive,
-		SwitchingSession: false,
-		CurrentTrack:     track,
-		MaxPlayers:       200,
+	// Forward headers
+	c.Request().Header.VisitAll(func(key, value []byte) {
+		req.Header.Set(string(key), string(value))
 	})
-	fmt.Printf("CurrentInvite: %v\n", gameServer.SignalingServer.CurrentInvite)
 
-	if err := server.CreateInvite(); err != nil {
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return c.Status(502).SendString(err.Error())
+	}
+	defer resp.Body.Close()
+
+	body, _ := io.ReadAll(resp.Body)
+
+	// 🔥 Copy content type
+	c.Set("Content-Type", resp.Header.Get("Content-Type"))
+
+	return c.Status(resp.StatusCode).Send(body)
+}
+
+func runLauncher(port int, controlPort int) {
+
+	log.Println("Launcher started")
+
+	var serverArgs []string
+
+	args := os.Args[1:]
+
+	for i := 0; i < len(args); i++ {
+
+		arg := args[i]
+
+		// Skip launcher flags AND their values
+		if arg == "-port" {
+			i++ // skip value
+			continue
+		}
+
+		if arg == "-server" {
+			continue
+		}
+
+		serverArgs = append(serverArgs, arg)
+	}
+
+	// Add server mode flag
+	serverArgs = append([]string{
+		"server",
+		"-control-port", strconv.Itoa(controlPort),
+	}, serverArgs...)
+
+	cmd := exec.Command(os.Args[0], serverArgs...)
+
+	stdout, _ := cmd.StdoutPipe()
+	stderr, _ := cmd.StderrPipe()
+
+	cmd.Stdin = os.Stdin
+
+	if err := cmd.Start(); err != nil {
 		log.Fatal(err)
 	}
 
-	select {} // keep program alive
+	log.Println("Server started with PID", cmd.Process.Pid)
+
+	go io.Copy(os.Stdout, stdout)
+	go io.Copy(os.Stderr, stderr)
+
+	stopDashboard := startSupervisorDashboard(port, cmd, controlPort)
+
+	go func() {
+		err := cmd.Wait()
+		log.Println("Server exited:", err)
+	}()
+
+	select {}
+
+	_ = stopDashboard
+}
+
+func startSupervisorDashboard(port int, cmd *exec.Cmd, controlPort int) func() {
+
+	app := fiber.New()
+
+	app.Static("/", "./web")
+
+	app.Get("/api/server/status", func(c *fiber.Ctx) error {
+		running := cmd.ProcessState == nil
+
+		return c.JSON(fiber.Map{
+			"running": running,
+			"pid":     cmd.Process.Pid,
+		})
+	})
+
+	app.Post("/api/server/stop", func(c *fiber.Ctx) error {
+		if cmd.Process != nil {
+			cmd.Process.Kill()
+		}
+		return c.SendStatus(204)
+	})
+
+	app.Post("/api/server/start", func(c *fiber.Ctx) error {
+
+		if cmd.ProcessState == nil {
+			return c.SendString("Already running")
+		}
+
+		newCmd := exec.Command(os.Args[0], "server")
+		newCmd.Stdout = os.Stdout
+		newCmd.Stderr = os.Stderr
+
+		if err := newCmd.Start(); err != nil {
+			return c.Status(500).SendString(err.Error())
+		}
+
+		cmd = newCmd
+		return c.SendStatus(204)
+	})
+
+	base := fmt.Sprintf("http://127.0.0.1:%d", controlPort)
+
+	app.Get("/api/invite", func(c *fiber.Ctx) error {
+		return proxyJSON(c, "GET", base+"/status")
+	})
+
+	app.Post("/api/invite", func(c *fiber.Ctx) error {
+		return proxyJSON(c, "POST", base+"/invite")
+	})
+
+	app.Get("/api/tracks", func(c *fiber.Ctx) error {
+		return proxyJSON(c, "GET", base+"/status")
+	})
+
+	app.Post("/api/tracks", func(c *fiber.Ctx) error {
+		return proxyJSON(c, "POST", base+"/track")
+	})
+
+	app.Get("/api/players", func(c *fiber.Ctx) error {
+		return proxyJSON(c, "GET", base+"/players")
+	})
+
+	addr := fmt.Sprintf(":%d", port)
+
+	go func() {
+		log.Println("Dashboard running on http://localhost" + addr)
+		if err := app.Listen(addr); err != nil {
+			log.Println(err)
+		}
+	}()
+
+	return func() {
+		app.ShutdownWithTimeout(5 * time.Second)
+	}
+}
+
+func main() {
+
+	// Server mode (positional argument)
+	if len(os.Args) > 1 && os.Args[1] == "server" {
+		runServer()
+		return
+	}
+
+	launcherFlags := flag.NewFlagSet("launcher", flag.ContinueOnError)
+
+	portFlag := launcherFlags.Int("port", 8080, "dashboard port")
+	controlPort := launcherFlags.Int("control-port", 9090, "server control port")
+
+	err := launcherFlags.Parse(os.Args[1:])
+	if err != nil {
+		log.Fatalln("Failed parsing flags!")
+	}
+	runLauncher(*portFlag, *controlPort)
+
 }
