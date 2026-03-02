@@ -9,19 +9,27 @@ type WebsocketResponse struct {
 type CreateInviteResponse struct {
 	Type                string `json:"type"`
 	InviteCode          string `json:"inviteCode"`
+	InviteKey           string `json:"key"`
 	TimeoutMilliseconds int    `json:"timeoutMilliseconds"`
 	CensoredNickname    string `json:"censoredNickname"`
 }
 
+type ICEServerFromKodub struct {
+	URLs       string `json:"urls"`
+	Username   string `json:"username,omitempty"`
+	Credential any    `json:"credential,omitempty"`
+}
+
 type JoinInvite struct {
-	Type                    string   `json:"type"`
-	Session                 string   `json:"session"`
-	Offer                   string   `json:"offer"`
-	Nickname                string   `json:"nickname"`
-	Mods                    []string `json:"mods"`
-	IsModsVanillaCompatible bool     `json:"isModsVanillaCompatible"`
-	CountryCode             *string  `json:"countryCode"`
-	CarStyle                string   `json:"carStyle"`
+	Type                    string               `json:"type"`
+	Session                 string               `json:"session"`
+	Offer                   string               `json:"offer"`
+	Nickname                string               `json:"nickname"`
+	Mods                    []string             `json:"mods"`
+	IceServers              []ICEServerFromKodub `json:"iceServers"`
+	IsModsVanillaCompatible bool                 `json:"isModsVanillaCompatible"`
+	CountryCode             *string              `json:"countryCode"`
+	CarStyle                string               `json:"carStyle"`
 }
 
 type AcceptJoinPacket struct {

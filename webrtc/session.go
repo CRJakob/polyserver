@@ -19,15 +19,11 @@ func NewPeerSession(
 	sessionID string,
 	offerSDP string,
 	onIceCanFunc func(candidate []byte, session string) error,
-	IceUrls []string,
+	iceServers []webrtc.ICEServer,
 	onClose func(string),
 ) (*PeerSession, string, error) {
 	config := webrtc.Configuration{
-		ICEServers: []webrtc.ICEServer{
-			{
-				URLs: IceUrls,
-			},
-		},
+		ICEServers: iceServers,
 	}
 
 	peer, err := webrtc.NewPeerConnection(config)
@@ -62,6 +58,7 @@ func NewPeerSession(
 	if err != nil {
 		return nil, "", err
 	}
+	log.Println("Returning answer...")
 	return ps, answer, nil
 }
 
@@ -91,11 +88,13 @@ func (ps *PeerSession) handleOffer(offerSDP string) (string, error) {
 	if err := ps.createDataChannels(); err != nil {
 		return "", err
 	}
+	log.Println("Data channels created!")
 
 	answer, err := ps.Peer.CreateAnswer(nil)
 	if err != nil {
 		return "", err
 	}
+	log.Println("Answer created!")
 
 	err = ps.Peer.SetLocalDescription(answer)
 	if err != nil {

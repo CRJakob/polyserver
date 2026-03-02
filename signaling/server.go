@@ -3,56 +3,33 @@ package signaling
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
-	"net/http"
 	"polyserver/config"
 	webrtc_session "polyserver/webrtc"
-	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/gorilla/websocket"
+	"github.com/pion/webrtc/v4"
 )
 
 type WebRTCServer struct {
-	Conn          *websocket.Conn
-	ConnLock      sync.Mutex
-	ICEUrls       []string
-	CurrentInvite string
-	SessionLock   sync.Mutex
-	Sessions      map[string]*webrtc_session.PeerSession
-	ClientCount   uint32
+	Conn             *websocket.Conn
+	ConnLock         sync.Mutex
+	CurrentInvite    string
+	CurrentInviteKey *string
+	SessionLock      sync.Mutex
+	Sessions         map[string]*webrtc_session.PeerSession
+	ClientCount      uint32
 
 	OnOpen  func(joinPacket JoinInvite, session *webrtc_session.PeerSession)
 	OnClose func(sessionId string)
 }
 
 func NewServer() *WebRTCServer {
-
-	resp, err := http.Get(config.IceFetchUrl)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	var IceServers []IceServerResponse
-	err1 := json.Unmarshal(body, &IceServers)
-	if err1 != nil {
-		log.Fatalln("Failed: Invalid ICE server response.")
-	}
-	var IceUrls []string
-	var numOfUrls = 0
-	for _, urls := range IceServers {
-		IceUrls = append(IceUrls, urls.Urls)
-		numOfUrls++
-	}
-	log.Println("Got " + strconv.Itoa(numOfUrls) + " ICE URLs")
 	return &WebRTCServer{
 		Sessions:    make(map[string]*webrtc_session.PeerSession),
 		ClientCount: 1,
-		ICEUrls:     IceUrls,
 	}
 }
 
@@ -88,6 +65,7 @@ func (s *WebRTCServer) CreateInvite() error {
 	payload := map[string]interface{}{
 		"version": config.PolyVersion,
 		"type":    "createInvite",
+		"key":     s.CurrentInviteKey,
 	}
 
 	data, _ := json.Marshal(payload)
@@ -113,7 +91,9 @@ func (s *WebRTCServer) Start() {
 
 func (s *WebRTCServer) handleCreateInvite(p CreateInviteResponse) {
 	s.CurrentInvite = p.InviteCode
-	log.Println("Invite code:", p.InviteCode)
+	s.CurrentInviteKey = &p.InviteKey
+	log.Println("Invite code:", s.CurrentInvite)
+	log.Println("Invite key:", *s.CurrentInviteKey)
 }
 
 func (s *WebRTCServer) onConnectionClosed(sessionId string) {
@@ -132,11 +112,24 @@ func (s *WebRTCServer) onConnectionClosed(sessionId string) {
 func (s *WebRTCServer) handleJoinInvite(p JoinInvite) {
 	log.Println("User is joining:", p.Nickname)
 
+	iceServers := make([]webrtc.ICEServer, 0)
+
+	for _, iceServer := range p.IceServers {
+		if len(strings.Split(iceServer.URLs, "turn")) == 0 {
+			log.Println("Server:", iceServer.URLs)
+			iceServers = append(iceServers, webrtc.ICEServer{
+				URLs:       []string{iceServer.URLs},
+				Username:   iceServer.Username,
+				Credential: iceServer.Credential,
+			})
+		}
+	}
+
 	session, answer, err := webrtc_session.NewPeerSession(
 		p.Session,
 		p.Offer,
 		s.OnIceCandidateServer,
-		s.ICEUrls,
+		iceServers,
 		s.onConnectionClosed,
 	)
 	if err != nil {
@@ -153,6 +146,7 @@ func (s *WebRTCServer) handleJoinInvite(p JoinInvite) {
 	})
 
 	log.Println("Created session:", p.Session)
+	log.Println("State:", session.Peer.ConnectionState().String())
 	joinPacket, _ := json.Marshal(AcceptJoinPacket{
 		Type:                    "acceptJoin",
 		Version:                 config.PolyVersion,
