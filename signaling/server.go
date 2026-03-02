@@ -6,7 +6,6 @@ import (
 	"log"
 	"polyserver/config"
 	webrtc_session "polyserver/webrtc"
-	"strings"
 	"sync"
 
 	"github.com/gorilla/websocket"
@@ -111,18 +110,15 @@ func (s *WebRTCServer) onConnectionClosed(sessionId string) {
 
 func (s *WebRTCServer) handleJoinInvite(p JoinInvite) {
 	log.Println("User is joining:", p.Nickname)
-
 	iceServers := make([]webrtc.ICEServer, 0)
 
 	for _, iceServer := range p.IceServers {
-		if len(strings.Split(iceServer.URLs, "turn")) == 0 {
-			log.Println("Server:", iceServer.URLs)
-			iceServers = append(iceServers, webrtc.ICEServer{
-				URLs:       []string{iceServer.URLs},
-				Username:   iceServer.Username,
-				Credential: iceServer.Credential,
-			})
-		}
+		log.Println("Server:", iceServer.URLs)
+		iceServers = append(iceServers, webrtc.ICEServer{
+			URLs:       []string{iceServer.URLs},
+			Username:   iceServer.Username,
+			Credential: iceServer.Credential,
+		})
 	}
 
 	session, answer, err := webrtc_session.NewPeerSession(
@@ -176,6 +172,7 @@ func (s *WebRTCServer) handleICE(p IceCandidateResponse) {
 	if err != nil {
 		log.Println("failed to add ICE:", err)
 	}
+	log.Println("Ice:", p.Candidate)
 }
 
 func (s *WebRTCServer) OnIceCandidateServer(candidate []byte, session string) error {
