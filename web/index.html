@@ -21,6 +21,78 @@
   <button class="uk-button uk-button-danger" onclick="stopServer()">Stop Server</button>
 
   <hr />
+  
+  <h2 class="uk-light">📊 Performance Metrics</h2>
+  <div class="uk-grid-small uk-child-width-1-3@m uk-margin" uk-grid>
+    <!-- Bandwidth Section -->
+    <div class="uk-card uk-card-default uk-card-body">
+      <h3 class="uk-card-title">🌐 Bandwidth</h3>
+      <p class="uk-margin-small">
+        ⬆️ Outbound: <strong id="mbps-out">0.00</strong> Mbps
+        <br><small id="bytes-out">0 B</small>
+      </p>
+      <p class="uk-margin-small">
+        ⬇️ Inbound: <strong id="mbps-in">0.00</strong> Mbps
+        <br><small id="bytes-in">0 B</small>
+      </p>
+    </div>
+
+    <!-- Connections Section -->
+    <div class="uk-card uk-card-default uk-card-body">
+      <h3 class="uk-card-title">👥 Connections</h3>
+      <p class="uk-margin-small">
+        🔗 Active: <strong id="active-conn">0</strong>
+        <br><small id="total-conn">Total: 0</small>
+      </p>
+      <p class="uk-margin-small">
+        ➕ Joined: <strong id="players-joined">0</strong>
+        <br>➖ Left: <strong id="players-left">0</strong>
+      </p>
+    </div>
+
+    <!-- Uptime Section -->
+    <div class="uk-card uk-card-default uk-card-body">
+      <h3 class="uk-card-title">⏱️ Uptime</h3>
+      <p class="uk-margin-small">
+        Server: <strong id="uptime">0s</strong>
+        <br><small id="uptime-details">-</small>
+      </p>
+    </div>
+
+    <!-- Performance Section -->
+    <div class="uk-card uk-card-default uk-card-body">
+      <h3 class="uk-card-title">⚡ Performance</h3>
+      <p class="uk-margin-small">
+        Avg Latency: <strong id="avg-latency">0</strong> ms
+        <br><small id="peak-latency">Peak: 0 ms</small>
+      </p>
+    </div>
+
+    <!-- Game State Section -->
+    <div class="uk-card uk-card-default uk-card-body">
+      <h3 class="uk-card-title">🎮 Game State</h3>
+      <p class="uk-margin-small">
+        Car Updates: <strong id="car-updates">0</strong>
+        <br><small id="car-health">Health: 100%</small>
+      </p>
+    </div>
+
+    <!-- Network Packets Section -->
+    <div class="uk-card uk-card-default uk-card-body">
+      <h3 class="uk-card-title">📦 Packets</h3>
+      <p class="uk-margin-small">
+        Sent: <strong id="pkt-sent">0</strong>
+        <br>Recv: <strong id="pkt-recv">0</strong>
+      </p>
+      <p class="uk-margin-small">
+        Avg Size: <strong id="avg-pkt">0</strong> bytes
+      </p>
+    </div>
+  </div>
+
+  <button class="uk-button uk-button-secondary uk-margin-small" onclick="resetMetrics()">Reset Metrics</button>
+
+  <hr />
   <h2 class="uk-light">Invite</h2>
   <pre id="invite"  @ class="uk-width-1-6"  >-</pre>
   <button class="uk-button uk-button-primary" onclick="createInvite()">Create Invite</button>

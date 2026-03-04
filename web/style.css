@@ -9,6 +9,18 @@ h1 {
   color: #60a5fa;
 }
 
+h2 {
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid #2563eb;
+  padding-bottom: 0.5rem;
+}
+
+h3 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
 button {
   padding: 0.6rem 1.2rem;
   margin-right: 0.5rem;
@@ -35,4 +47,59 @@ td {
 th {
   text-align: left;
   color: #9ca3af;
+}
+
+/* Metrics Cards */
+.uk-card {
+  background: #1a1e27 !important;
+  border: 1px solid #2b2f36 !important;
+  border-radius: 6px;
+}
+
+.uk-card-body {
+  padding: 1rem;
+}
+
+.uk-card-title {
+  font-size: 0.95rem;
+  color: #60a5fa;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+.uk-card p {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.uk-card strong {
+  color: #10b981;
+  font-size: 1.1em;
+}
+
+.uk-margin-small {
+  margin: 0.5rem 0;
+}
+
+/* Grid for metrics */
+.uk-grid-small > * {
+  padding-bottom: 1rem;
+}
+
+/* Button styling */
+.uk-button-secondary {
+  background: #374151;
+  color: #e5e7eb;
+}
+
+.uk-button-secondary:hover {
+  background: #4b5563;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .uk-child-width-1-3@m {
+    width: 100% !important;
+  }
 }

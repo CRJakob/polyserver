@@ -11,6 +11,82 @@ async function updateStatus() {
   document.getElementById("pid").textContent = data.running ? data.pid : "-";
 }
 
+// Format bytes to human readable
+function formatBytes(bytes) {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+// Format uptime to human readable
+function formatUptime(seconds) {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = Math.floor(seconds % 60);
+  
+  if (hours > 0) {
+    return `${hours}h ${minutes}m ${secs}s`;
+  } else if (minutes > 0) {
+    return `${minutes}m ${secs}s`;
+  } else {
+    return `${secs}s`;
+  }
+}
+
+// Load and display metrics
+async function loadMetrics() {
+  try {
+    const r = await fetch("/api/metrics");
+    const m = await r.json();
+    
+    // Bandwidth
+    document.getElementById("mbps-out").textContent = m.mbps_sent.toFixed(2);
+    document.getElementById("bytes-out").textContent = formatBytes(m.bytes_sent);
+    document.getElementById("mbps-in").textContent = m.mbps_received.toFixed(2);
+    document.getElementById("bytes-in").textContent = formatBytes(m.bytes_received);
+    
+    // Connections
+    document.getElementById("active-conn").textContent = m.active_connections;
+    document.getElementById("total-conn").textContent = `Total: ${m.total_connections}`;
+    document.getElementById("players-joined").textContent = m.players_joined;
+    document.getElementById("players-left").textContent = m.players_left;
+    
+    // Uptime
+    document.getElementById("uptime").textContent = formatUptime(m.uptime_seconds);
+    document.getElementById("uptime-details").textContent = new Date(m.uptime_seconds * 1000).toISOString().substr(11, 8);
+    
+    // Performance
+    document.getElementById("avg-latency").textContent = Math.round(m.avg_latency_ms);
+    document.getElementById("peak-latency").textContent = `Peak: ${Math.round(m.peak_latency_ms)} ms`;
+    
+    // Game State
+    document.getElementById("car-updates").textContent = m.car_updates.toLocaleString();
+    const failureRate = m.car_update_failures > 0 ? (m.car_failure_rate.toFixed(2)) : "0";
+    document.getElementById("car-health").textContent = `Health: ${(100 - parseFloat(failureRate)).toFixed(2)}%`;
+    
+    // Packets
+    document.getElementById("pkt-sent").textContent = m.packets_sent.toLocaleString();
+    document.getElementById("pkt-recv").textContent = m.packets_received.toLocaleString();
+    const avgSize = m.packets_sent > 0 ? Math.round(m.avg_packet_size_out) : 0;
+    document.getElementById("avg-pkt").textContent = avgSize;
+    
+  } catch (e) {
+    // Server metrics not available
+  }
+}
+
+// Reset metrics
+async function resetMetrics() {
+  try {
+    await fetch("/api/metrics/reset", { method: "POST" });
+    setTimeout(loadMetrics, 500);
+  } catch (e) {
+    console.log("Error resetting metrics: " + e);
+  }
+}
+
 async function startServer() {
   await fetch("/api/server/start", { method: "POST" });
 
@@ -162,10 +238,12 @@ function main() {
   updateStatus();
   loadServerData();
   loadPlayers();
+  loadMetrics();
 
   setInterval(updateStatus, 2000);
   setInterval(loadPlayers, 1000);
   setInterval(loadServerData, 3000);
+  setInterval(loadMetrics, 1000);  // Update metrics every second for real-time view
 }
 
 main();

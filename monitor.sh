@@ -50,9 +50,10 @@ draw_bar() {
     local max=$2
     local width=30
     
-    if [ $(echo "$max > 0" | bc) -eq 1 ]; then
-        local filled=$(echo "($value / $max) * $width" | bc | cut -d. -f1)
+    if [ "$max" -gt 0 ] 2>/dev/null; then
+        local filled=$(( (value * width) / max ))
         [ $filled -gt $width ] && filled=$width
+        [ $filled -lt 0 ] && filled=0
         
         local bar=""
         for ((i=0; i<filled; i++)); do
@@ -62,6 +63,8 @@ draw_bar() {
             bar="${bar}░"
         done
         echo -n "$bar"
+    else
+        echo -n "░░░░░░░░░░░░░░░░░░░░░░░░░░░░"
     fi
 }
 
