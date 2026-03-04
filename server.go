@@ -6,9 +6,12 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"polyserver/game"
 	gamepackets "polyserver/game/packets"
+	"polyserver/metrics"
 	"polyserver/signaling"
 	"polyserver/tracks"
 	"strconv"
@@ -251,12 +254,53 @@ func runServer() {
 		})
 	})
 
+	// Metrics endpoint - returns bandwidth and connection stats
+	app.Get("/metrics", func(c *fiber.Ctx) error {
+		snap := metrics.GetMetrics().Snapshot()
+		return c.JSON(fiber.Map{
+			"uptime_seconds":        snap.Uptime,
+			"active_connections":    snap.ActiveConnections,
+			"total_connections":     snap.TotalConnections,
+			"bytes_sent":            snap.BytesSent,
+			"bytes_received":        snap.BytesReceived,
+			"mbps_sent":             snap.MbpsSent,
+			"mbps_received":         snap.MbpsReceived,
+			"packets_sent":          snap.PacketsSent,
+			"packets_received":      snap.PacketsReceived,
+			"avg_packet_size_out":   snap.AveragePacketSizeOut,
+			"avg_packet_size_in":    snap.AveragePacketSizeIn,
+			"players_joined":        snap.PlayersJoined,
+			"players_left":          snap.PlayersLeft,
+			"car_updates":           snap.CarUpdatesProcessed,
+			"car_update_failures":   snap.CarUpdatesFailed,
+			"car_failure_rate":      snap.CarUpdateFailureRate,
+			"pings_processed":       snap.PingsProcessed,
+			"avg_latency_ms":        snap.AverageLatencyMs,
+			"peak_latency_ms":       snap.PeakLatencyMs,
+		})
+	})
+
+	// Metrics reset endpoint (useful for benchmarking between tests)
+	app.Post("/metrics/reset", func(c *fiber.Ctx) error {
+		metrics.GetMetrics().Reset()
+		return c.SendStatus(204)
+	})
+
 	addr := "127.0.0.1:" + strconv.Itoa(*controlPort)
 
 	go func() {
 		log.Println("Control API running on", addr)
 		if err := app.Listen(addr); err != nil {
 			log.Println(err)
+		}
+	}()
+
+	// Start pprof on a different port for profiling
+	go func() {
+		pprofAddr := "127.0.0.1:6060"
+		log.Println("pprof profiling available at http://" + pprofAddr + "/debug/pprof/")
+		if err := http.ListenAndServe(pprofAddr, nil); err != nil {
+			log.Println("pprof error:", err)
 		}
 	}()
 

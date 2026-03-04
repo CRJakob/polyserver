@@ -5,6 +5,7 @@ import (
 	"log"
 
 	gamepackets "polyserver/game/packets"
+	"polyserver/metrics"
 	"polyserver/signaling"
 	webrtc_session "polyserver/webrtc"
 	"sync"
@@ -77,6 +78,7 @@ func (s *GameServer) UpdateGameSession(gs GameSession) {
 func (server *GameServer) onPlayerJoin(p signaling.JoinInvite, session *webrtc_session.PeerSession) {
 
 	log.Println("Creating player " + p.Nickname)
+	metrics.RecordPlayerJoin()
 
 	carStyle, err := gamepackets.FromBase64String(p.CarStyle)
 	if err != nil {
@@ -139,6 +141,7 @@ func (server *GameServer) onPlayerDisconnect(sessionId string) {
 			log.Println("Removing player " + player.Nickname)
 			playerId = player.ID
 			index = i
+			metrics.RecordPlayerLeft()
 			break
 		}
 	}

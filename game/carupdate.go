@@ -6,6 +6,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	gamepackets "polyserver/game/packets"
+	"polyserver/metrics"
 )
 
 // CarUpdateBatcher handles batching and splitting of car updates
@@ -88,6 +89,10 @@ func (b *CarUpdateBatcher) sendSinglePacket(player *Player, compressed []byte) e
 	packet[0] = byte(gamepackets.PlayerCarUpdate)
 	binary.LittleEndian.PutUint32(packet[1:5], b.sessionID)
 	copy(packet[5:], compressed)
+
+	// Record metrics
+	metrics.RecordPacketOut(int64(len(packet)))
+	metrics.RecordCarUpdate()
 
 	return player.Session.UnreliableDC.Send(packet)
 }

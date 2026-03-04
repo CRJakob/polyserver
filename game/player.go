@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	gamepackets "polyserver/game/packets"
+	"polyserver/metrics"
 	webrtc_session "polyserver/webrtc"
 	"sync"
 	"time"
@@ -124,6 +125,7 @@ func (player *Player) Send(packet gamepackets.PlayerPacket) error {
 		return fmt.Errorf("failed to marshal %s packet: %w", packet.Type(), err)
 	}
 
+	metrics.RecordPacketOut(int64(len(data)))
 	return player.Session.ReliableDC.Send(data)
 }
 
@@ -133,6 +135,7 @@ func (player *Player) SendUnreliable(packet gamepackets.PlayerPacket) error {
 		return fmt.Errorf("failed to marshal %s packet: %w", packet.Type(), err)
 	}
 
+	metrics.RecordPacketOut(int64(len(data)))
 	return player.Session.UnreliableDC.Send(data)
 }
 
